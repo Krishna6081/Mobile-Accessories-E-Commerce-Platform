@@ -50,15 +50,15 @@ export default function LoginPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl border border-slate-200/80 shadow-lg space-y-6">
-        <div className="text-center space-y-1">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-amber-500 text-white flex items-center justify-center mx-auto text-xl font-bold shadow-md shadow-rose-500/20">
-            ⚡
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center mx-auto shadow-md overflow-hidden border border-slate-700 p-0.5">
+            <img src="/mobixia-logo.jpg" alt="Mobixia Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-xl font-black text-slate-900 pt-2 tracking-tight">
+          <h1 className="text-xl font-black text-slate-900 pt-1 tracking-tight">
             {loginType === 'ADMIN' ? 'Admin & Staff Portal Login' : 'Customer Account Login'}
           </h1>
           <p className="text-xs text-slate-500 font-medium">
-            {loginType === 'ADMIN' ? 'Access database management & sales analytics' : 'Sign in to your ACCSTORE account'}
+            {loginType === 'ADMIN' ? 'Access database management & sales analytics' : 'Sign in to your Mobixia account'}
           </p>
         </div>
 

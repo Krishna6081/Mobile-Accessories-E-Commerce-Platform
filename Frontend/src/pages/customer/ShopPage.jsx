@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import { Filter, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import ProductCard from '../../components/product/ProductCard';
 import api from '../../services/api';
 
 export default function ShopPage() {
+  const { slug: routeCategorySlug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 
-  const selectedCategory = searchParams.get('category') || '';
+  const selectedCategory = searchParams.get('category') || routeCategorySlug || '';
   const selectedBrand = searchParams.get('brand') || '';
+  const searchQuery = searchParams.get('q') || searchParams.get('search') || '';
   const sortBy = searchParams.get('sortBy') || 'createdAt';
 
   useEffect(() => {
@@ -23,14 +27,22 @@ export default function ShopPage() {
 
   useEffect(() => {
     setLoading(true);
-    const query = new URLSearchParams(searchParams).toString();
-    api.get(`/products?${query}`)
+    const params = new URLSearchParams(searchParams);
+
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    }
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+
+    api.get(`/products?${params.toString()}`)
       .then((res) => {
         setProducts(res.data || []);
         setTotal(res.meta?.total || 0);
       })
       .finally(() => setLoading(false));
-  }, [searchParams]);
+  }, [searchParams, routeCategorySlug, selectedCategory, searchQuery]);
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -39,7 +51,7 @@ export default function ShopPage() {
     } else {
       newParams.delete(key);
     }
-    setSearchParams(newParams);
+    navigate(`/shop?${newParams.toString()}`);
   };
 
   return (

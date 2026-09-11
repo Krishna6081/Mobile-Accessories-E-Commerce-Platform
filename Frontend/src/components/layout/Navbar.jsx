@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, ShoppingBag, Heart, User, Menu, X, Shield, LogOut, Sparkles } from 'lucide-react';
+import { Search, ShoppingBag, Heart, User, Menu, X, Shield, LogOut, Sparkles, ChevronRight } from 'lucide-react';
 import { toggleCartDrawer } from '../../store/slices/cartSlice';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
@@ -15,8 +15,13 @@ export default function Navbar() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { itemCount } = useSelector((state) => state.cart);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const { user, isAuthenticated } = useSelector((state) => state.auth || {});
+  const { itemCount } = useSelector((state) => state.cart || {});
+
+  const currentCategorySlug = searchParams.get('category') || location.pathname.split('/category/')[1] || '';
 
   useEffect(() => {
     api.get('/categories')
@@ -38,7 +43,7 @@ export default function Navbar() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSuggest(false);
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/shop?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -59,11 +64,18 @@ export default function Navbar() {
         </button>
 
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 text-xl font-black tracking-tight text-slate-900 group shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-amber-500 flex items-center justify-center text-white font-black text-lg shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
-            ⚡
+        <Link to="/" className="flex items-center gap-3 group shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center overflow-hidden border border-slate-700 shadow-md group-hover:scale-105 transition-transform p-0.5">
+            <img src="/mobixia-logo.jpg" alt="Mobixia Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="font-black text-slate-900">ACC<span className="gradient-text-coral">STORE</span></span>
+          <div className="flex flex-col">
+            <span className="font-black text-xl tracking-tight text-slate-900 leading-none">
+              Mobi<span className="text-blue-600">X</span>ia
+            </span>
+            <span className="text-[9px] font-extrabold text-blue-600 tracking-widest uppercase mt-0.5">
+              Mobile Accessories Online
+            </span>
+          </div>
         </Link>
 
         {/* Search Bar */}
@@ -162,21 +174,74 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Category Navigation Bar */}
+      {/* Category Navigation Bar (Taskbar Options) */}
       <nav className="border-t border-slate-200/80 hidden lg:block bg-white/90">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-7 overflow-x-auto py-2.5 text-xs font-bold tracking-wide text-slate-700">
-          <Link to="/shop" className="hover:text-rose-600 transition-colors uppercase text-[11px]">All Gear</Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/category/${cat.slug}`}
-              className="hover:text-rose-600 transition-colors whitespace-nowrap text-[11px] uppercase"
-            >
-              {cat.name}
-            </Link>
-          ))}
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-6 overflow-x-auto py-2.5 text-xs font-bold tracking-wide text-slate-700">
+          <Link
+            to="/shop"
+            className={`transition-all uppercase text-[11px] font-black pb-0.5 border-b-2 ${
+              !currentCategorySlug
+                ? 'text-rose-600 border-rose-500'
+                : 'text-slate-700 border-transparent hover:text-rose-600'
+            }`}
+          >
+            All Gear
+          </Link>
+          {categories.map((cat) => {
+            const isActive = currentCategorySlug === cat.slug;
+            return (
+              <Link
+                key={cat.id}
+                to={`/shop?category=${cat.slug}`}
+                className={`transition-all whitespace-nowrap text-[11px] uppercase font-black pb-0.5 border-b-2 ${
+                  isActive
+                    ? 'text-rose-600 border-rose-500'
+                    : 'text-slate-700 border-transparent hover:text-rose-600'
+                }`}
+              >
+                {cat.name}
+              </Link>
+            );
+          })}
         </div>
       </nav>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-slate-200 bg-white p-4 space-y-4 shadow-xl">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              placeholder="Search accessories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 pl-9 text-xs text-slate-900"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          </form>
+
+          <div className="space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 mb-1">Categories</p>
+            <Link
+              to="/shop"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3 py-2 rounded-xl text-xs font-bold ${!currentCategorySlug ? 'bg-rose-50 text-rose-600' : 'text-slate-700'}`}
+            >
+              All Gear
+            </Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/shop?category=${cat.slug}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3 py-2 rounded-xl text-xs font-bold ${currentCategorySlug === cat.slug ? 'bg-rose-50 text-rose-600' : 'text-slate-700'}`}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

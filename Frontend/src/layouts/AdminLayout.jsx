@@ -42,8 +42,10 @@ export default function AdminLayout() {
         <div className="space-y-6">
           <div className="flex items-center justify-between px-2 pt-2">
             <Link to="/admin/dashboard" className="flex items-center gap-2.5 text-base font-black text-slate-900 tracking-tight">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-amber-500 flex items-center justify-center text-sm text-white shadow-md shadow-rose-500/20">⚡</div>
-              ADMIN PANEL
+              <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center overflow-hidden border border-slate-700 shadow-md p-0.5">
+                <img src="/mobixia-logo.jpg" alt="Mobixia Logo" className="w-full h-full object-contain" />
+              </div>
+              <span className="font-black text-slate-900">Mobi<span className="text-blue-600">X</span>ia Admin</span>
             </Link>
           </div>
 
