@@ -27,8 +27,8 @@ const authenticate = async (req, res, next) => {
       },
     });
 
-    if (!user || user.status === 'BLOCKED') {
-      return ApiResponse.error(res, 'User account is inactive or blocked', 403);
+    if (!user || user.status === 'BLOCKED' || user.role?.status === 'BLOCKED') {
+      return ApiResponse.error(res, 'User account or role is inactive or blocked', 403);
     }
 
     // Attach permissions array to request
@@ -38,6 +38,7 @@ const authenticate = async (req, res, next) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      mobile: user.mobile,
       role: user.role.name,
       roleId: user.roleId,
       permissions,

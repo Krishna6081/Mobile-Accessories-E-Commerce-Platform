@@ -68,7 +68,7 @@ const HERO_SLIDES = [
     badge: '🔋 MAGNETIC SLIM POWER',
     title: '10,000mAh MagSafe PowerBank',
     subtitle: 'Snap-on wireless charging for on-the-go power with pass-through fast charging capability.',
-    image: 'https://images.unsplash.com/photo-1622445268465-843d6118d06d?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/power-bank-magsafe.png',
     ctaText: 'Shop Power Banks',
     ctaLink: '/shop?category=power-banks',
     gradient: 'from-slate-900 via-amber-950 to-slate-900',

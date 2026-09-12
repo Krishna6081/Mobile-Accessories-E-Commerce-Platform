@@ -1,92 +1,58 @@
-# Mobile Accessories E-Commerce Platform (`mobile-accessories-ecommerce`)
+# Mobile Accessories E-Commerce Platform
 
-A modern, production-ready, full-stack E-Commerce platform for mobile accessories (Phone Cases, Chargers, Audio, Watch Straps, Power Banks, Mounts, Screen Protectors, Speakers) built with **React**, **Node.js**, **Express**, **MySQL**, and **Prisma ORM**.
+A production-ready, full-stack E-Commerce platform built for mobile accessories with **data-driven Role-Based Access Control (RBAC)** supporting 5 primary user classes: `GUEST`, `CUSTOMER`, `MANAGER / STAFF`, `ADMIN`, and `SUPER ADMIN`.
 
 ---
 
 ## 🌟 Key Features
 
-### 🛒 Customer Storefront
-- **Modern Vortique-Inspired Design**: Sleek typography, micro-interactions, responsive grid, trust strip, hero slider.
-- **Product Discovery**: Category & brand filters, price range slider, rating filters, live search auto-suggest, sorting.
-- **Rich Product Detail**: Multi-image zoom gallery, device compatibility selector, stock indicators, delivery pincode checker, post-delivery verified reviews.
-- **Cart & Wishlist**: Guest and logged-in carts, stock validation, promo code validation, quantity limits.
-- **Checkout & Payments**: Multi-step checkout, Cash on Delivery (COD), integrated Razorpay payment gateway adapter (test/live modes).
-- **Customer Account**: Profile management, saved addresses, order tracking with real-time timeline, downloadable invoices.
-
-### 🛡️ Admin & Super Admin Panel
-- **Analytics Dashboard**: Interactive KPI metrics, Recharts sales and order charts, real API integration.
-- **Product & Inventory Management**: Multi-variant SKU support, image management, stock thresholds, transaction-safe inventory updates.
-- **Data-Driven RBAC**: Fine-grained permissions (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `CUSTOMER`) enforced strictly server-side.
-- **Encrypted Payment Settings**: Super Admin gated payment credential editor with AES-256-GCM encryption at rest, step-up password verification, credential history, and masked key displays (`••••••••1234`).
-- **Audit Logs**: Detailed tracking of sensitive actions (logins, role changes, order status changes, credential updates).
-- **CMS & Marketing**: Promotional banners, Hero carousels, dynamic CMS pages (About, Contact, Policies), coupon engine.
-
----
-
-## 🏗️ Technology Stack
-
-- **Frontend**: React 18, Vite, Redux Toolkit, React Router v6, Tailwind CSS, Lucide React, Recharts, React Hook Form, Zod, React Hot Toast.
-- **Backend**: Node.js, Express.js, Prisma ORM, MySQL 8, JWT (Access + Refresh tokens), bcrypt, Multer, Winston/Morgan, Helmet, CORS, Rate-Limiting.
-- **Documentation**: Swagger/OpenAPI, SRS.md, API.md, DATABASE.md, RBAC.md.
+- **5 Primary User Classes & Hierarchy**:
+  - `GUEST`: Unauthenticated storefront visitor.
+  - `CUSTOMER`: Account holder with cart, checkout, addresses, orders, and wishlist.
+  - `MANAGER / STAFF`: Limited operational admin for order fulfillment and stock management.
+  - `ADMIN`: Operational administrator for catalog, orders, customers, reviews, and CMS.
+  - `SUPER ADMIN`: Master system owner with payment credentials, staff management, dynamic permission matrix, audit logs, and ownership transfer.
+- **Data-Driven RBAC Engine**:
+  - Authorization middleware checks granular `module.action` permissions (`product.view`, `order.update`, `staff.deactivate`, etc.).
+  - Permission Matrix UI for creating custom roles dynamically.
+- **Security & Protection**:
+  - Super Admin ownership transfer with current password verification & audit log.
+  - Sensitive contact change via 2-step OTP verification.
+  - Encrypted payment credentials (AES-256-GCM) at rest.
+  - Standardized 403 Access Denied page & frontend permission guards.
 
 ---
 
-## 🚀 Quick Start Guide
+## 🛠️ Quick Start
 
-### Prerequisites
-- Node.js (v18+ recommended)
-- MySQL 8.0+
-
-### 1. Database Setup
-Ensure MySQL service is running and create a database named `mobile_accessories_db`:
-```sql
-CREATE DATABASE mobile_accessories_db;
-```
-
-### 2. Environment Variables Setup
-Copy `.env.example` to `.env` in `Backend/`:
 ```bash
-cp Backend/.env.example Backend/.env
-```
-Update `DATABASE_URL` in `Backend/.env`:
-```env
-DATABASE_URL="mysql://root:password@localhost:3306/mobile_accessories_db"
-JWT_ACCESS_SECRET="your-jwt-access-secret"
-JWT_REFRESH_SECRET="your-jwt-refresh-secret"
-ENCRYPTION_KEY="12345678901234567890123456789012"
-```
-
-### 3. Installation & Database Seeding
-From the project root directory:
-```bash
-# Install dependencies
+# 1. Install all monorepo dependencies
 npm run install:all
 
-# Generate Prisma Client & Run Migrations
+# 2. Database Generation & Seeding
 npm run prisma:generate
+npm run prisma:migrate
 npm run prisma:seed
-```
 
-### 4. Running Development Servers
-```bash
-# Start both Backend (Port 5000) and Frontend (Port 5173) concurrently
+# 3. Start Development Servers (Backend + Frontend)
 npm run dev
 ```
 
 ---
 
-## 🔐 Default Admin Credentials (Development)
+## 🔑 Test Credentials
 
-- **Super Admin Email**: `superadmin@accessories.com`
-- **Super Admin Password**: `SuperAdmin123!`
-- **Admin Email**: `admin@accessories.com`
-- **Admin Password**: `Admin123!`
-- **Customer Email**: `customer@example.com`
-- **Customer Password**: `Customer123!`
+| Role | Email | Password |
+|---|---|---|
+| **Super Admin** | `superadmin@example.com` | `SuperAdmin123!` |
+| **Admin** | `admin@example.com` | `Admin123!` |
+| **Manager** | `manager@example.com` | `Manager123!` |
+| **Customer** | `customer@example.com` | `Customer123!` |
 
 ---
 
-## 📖 API Documentation & Specs
-- **Swagger Documentation**: Available at `http://localhost:5000/api/v1/docs` when backend is running.
-- **Architecture Docs**: Check the `docs/` folder for `SRS.md`, `API.md`, `DATABASE.md`, and `RBAC.md`.
+## 📚 Documentation Links
+
+- [RBAC System Architecture](docs/RBAC.md)
+- [API Protection & Endpoints](docs/API.md)
+- [Database Schema & Models](docs/DATABASE.md)

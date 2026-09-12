@@ -88,6 +88,7 @@ model Role {
   name            String           @unique // e.g., SUPER_ADMIN, ADMIN, MANAGER, CUSTOMER
   description     String?
   isSystem        Boolean          @default(false)
+  status          AccountStatus    @default(ACTIVE)
   users           User[]
   rolePermissions RolePermission[]
   createdAt       DateTime         @default(now())

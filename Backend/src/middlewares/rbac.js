@@ -12,7 +12,7 @@ const requirePermission = (permissionName) => {
     }
 
     if (!req.user.permissions || !req.user.permissions.includes(permissionName)) {
-      return ApiResponse.error(res, `Permission denied. Required permission: ${permissionName}`, 403);
+      return ApiResponse.error(res, 'You do not have permission to perform this action', 403);
     }
 
     next();

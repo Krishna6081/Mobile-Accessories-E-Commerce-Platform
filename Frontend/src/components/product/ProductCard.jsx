@@ -9,7 +9,8 @@ export default function ProductCard({ product, onWishlistToggle }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const primaryImage = product.images?.[0]?.url || 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80';
+  const primaryImage = product.images?.[0]?.url || '/images/power-bank-magsafe.png';
+  const [imgSrc, setImgSrc] = useState(primaryImage);
   const defaultVariant = product.variants?.[0] || { mrp: 999, price: 699, stock: 10 };
   const discountPercent = Math.round(((defaultVariant.mrp - defaultVariant.price) / defaultVariant.mrp) * 100);
 
@@ -44,8 +45,9 @@ export default function ProductCard({ product, onWishlistToggle }) {
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <img
-            src={primaryImage}
+            src={imgSrc}
             alt={product.name}
+            onError={() => setImgSrc('/images/power-bank-magsafe.png')}
             className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
           />
         </Link>

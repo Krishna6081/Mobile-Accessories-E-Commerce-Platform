@@ -61,6 +61,7 @@ async function main() {
 
   // 2. PERMISSIONS
   const permissionList = [
+    { name: 'dashboard.view', module: 'Dashboard', description: 'View dashboard analytics & metrics' },
     { name: 'product.view', module: 'Catalog', description: 'View catalog products' },
     { name: 'product.create', module: 'Catalog', description: 'Create catalog products' },
     { name: 'product.update', module: 'Catalog', description: 'Update catalog products' },
@@ -73,13 +74,15 @@ async function main() {
     { name: 'brand.create', module: 'Catalog', description: 'Create brands' },
     { name: 'brand.update', module: 'Catalog', description: 'Update brands' },
     { name: 'brand.delete', module: 'Catalog', description: 'Delete brands' },
+    { name: 'inventory.view', module: 'Inventory', description: 'View stock levels' },
+    { name: 'inventory.update', module: 'Inventory', description: 'Adjust stock levels' },
     { name: 'order.view', module: 'Orders', description: 'View customer orders' },
     { name: 'order.update', module: 'Orders', description: 'Update order status & courier' },
     { name: 'order.cancel', module: 'Orders', description: 'Cancel orders' },
-    { name: 'order.refund', module: 'Orders', description: 'Process order returns & refunds' },
-    { name: 'inventory.view', module: 'Inventory', description: 'View stock levels' },
-    { name: 'inventory.update', module: 'Inventory', description: 'Adjust stock levels' },
+    { name: 'order.return', module: 'Orders', description: 'Process order return requests' },
+    { name: 'order.refund', module: 'Orders', description: 'Process order refunds' },
     { name: 'customer.view', module: 'Customers', description: 'View customer profiles' },
+    { name: 'customer.update', module: 'Customers', description: 'Update customer details' },
     { name: 'customer.block', module: 'Customers', description: 'Block or unblock customers' },
     { name: 'coupon.view', module: 'Marketing', description: 'View coupons' },
     { name: 'coupon.create', module: 'Marketing', description: 'Create coupons' },
@@ -89,22 +92,29 @@ async function main() {
     { name: 'banner.create', module: 'Marketing', description: 'Create promotional banners' },
     { name: 'banner.update', module: 'Marketing', description: 'Update promotional banners' },
     { name: 'banner.delete', module: 'Marketing', description: 'Delete promotional banners' },
+    { name: 'review.view', module: 'Reviews', description: 'View customer product reviews' },
+    { name: 'review.approve', module: 'Reviews', description: 'Approve product reviews' },
+    { name: 'review.reject', module: 'Reviews', description: 'Reject product reviews' },
+    { name: 'review.delete', module: 'Reviews', description: 'Delete product reviews' },
+    { name: 'review.reply', module: 'Reviews', description: 'Reply to customer reviews' },
     { name: 'cms.view', module: 'CMS', description: 'View CMS pages' },
     { name: 'cms.update', module: 'CMS', description: 'Update CMS pages' },
-    { name: 'reports.view', module: 'Reports', description: 'View sales & inventory reports' },
-    { name: 'reports.export', module: 'Reports', description: 'Export report datasets' },
+    { name: 'report.view', module: 'Reports', description: 'View sales & inventory reports' },
+    { name: 'report.export', module: 'Reports', description: 'Export report datasets' },
     { name: 'settings.view', module: 'Settings', description: 'View store settings' },
     { name: 'settings.update', module: 'Settings', description: 'Update store settings' },
-    { name: 'payment.manage', module: 'Security', description: 'Manage payment gateway credentials' },
+    { name: 'payment.view', module: 'Security', description: 'View payment gateway settings' },
+    { name: 'payment.update', module: 'Security', description: 'Manage payment gateway credentials' },
     { name: 'staff.view', module: 'Staff', description: 'View staff members' },
     { name: 'staff.create', module: 'Staff', description: 'Create staff accounts' },
     { name: 'staff.update', module: 'Staff', description: 'Update staff details' },
-    { name: 'staff.delete', module: 'Staff', description: 'Delete staff accounts' },
-    { name: 'roles.view', module: 'Security', description: 'View roles & permissions' },
-    { name: 'roles.create', module: 'Security', description: 'Create custom roles' },
-    { name: 'roles.update', module: 'Security', description: 'Update roles & permissions' },
-    { name: 'roles.delete', module: 'Security', description: 'Delete roles' },
+    { name: 'staff.deactivate', module: 'Staff', description: 'Deactivate staff accounts' },
+    { name: 'role.view', module: 'Security', description: 'View roles & permission matrix' },
+    { name: 'role.create', module: 'Security', description: 'Create custom roles' },
+    { name: 'role.update', module: 'Security', description: 'Update roles & permissions' },
+    { name: 'role.delete', module: 'Security', description: 'Delete custom roles' },
     { name: 'audit.view', module: 'Audit', description: 'View system audit logs' },
+    { name: 'superadmin.manage', module: 'Security', description: 'Super Admin master administration' },
   ];
 
   const dbPermissions = [];
@@ -126,8 +136,13 @@ async function main() {
     });
   }
 
-  // Bind permissions to ADMIN (All except Super Admin exclusive security)
-  const superExclusive = ['payment.manage', 'staff.create', 'staff.delete', 'roles.create', 'roles.delete'];
+  // Bind permissions to ADMIN (Operational & Management, exclude Super Admin exclusives)
+  const superExclusive = [
+    'payment.view', 'payment.update',
+    'staff.create', 'staff.update', 'staff.deactivate',
+    'role.create', 'role.update', 'role.delete',
+    'superadmin.manage', 'audit.view'
+  ];
   for (const perm of dbPermissions) {
     if (!superExclusive.includes(perm.name)) {
       await prisma.rolePermission.upsert({
@@ -138,8 +153,12 @@ async function main() {
     }
   }
 
-  // Bind permissions to MANAGER (Inventory & Orders focus)
-  const managerPermNames = ['product.view', 'order.view', 'order.update', 'inventory.view', 'inventory.update', 'customer.view'];
+  // Bind permissions to MANAGER (Store fulfillment & stock management)
+  const managerPermNames = [
+    'dashboard.view', 'product.view', 'product.create', 'product.update',
+    'inventory.view', 'inventory.update', 'order.view', 'order.update',
+    'report.view', 'customer.view'
+  ];
   for (const perm of dbPermissions) {
     if (managerPermNames.includes(perm.name)) {
       await prisma.rolePermission.upsert({
@@ -151,54 +170,130 @@ async function main() {
   }
 
   // 3. SEED USERS
-  const hashedPasswordSuper = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD || 'SuperAdmin123!', 10);
-  const hashedPasswordAdmin = await bcrypt.hash(process.env.DEFAULT_STAFF_PASSWORD || 'Admin123!', 10);
-  const hashedPasswordCustomer = await bcrypt.hash('Customer123!', 10);
+  const hashedPasswordSuper = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD || process.env.DEFAULT_ADMIN_PASSWORD || 'SuperAdmin123!', 10);
+  const hashedPasswordAdmin = await bcrypt.hash(process.env.ADMIN_PASSWORD || process.env.DEFAULT_STAFF_PASSWORD || 'Admin123!', 10);
+  const hashedPasswordManager = await bcrypt.hash(process.env.MANAGER_PASSWORD || 'Manager123!', 10);
+  const hashedPasswordCustomer = await bcrypt.hash(process.env.CUSTOMER_PASSWORD || 'Customer123!', 10);
 
-  const superAdminUser = await prisma.user.upsert({
-    where: { email: process.env.DEFAULT_ADMIN_EMAIL || 'superadmin@accessories.com' },
-    update: {},
-    create: {
-      name: process.env.DEFAULT_ADMIN_NAME || 'Super Admin',
-      email: process.env.DEFAULT_ADMIN_EMAIL || 'superadmin@accessories.com',
-      mobile: process.env.DEFAULT_ADMIN_MOBILE || '9876543210',
-      password: hashedPasswordSuper,
-      roleId: superAdminRole.id,
-      isEmailVerified: true,
-      isMobileVerified: true,
-      status: 'ACTIVE',
-    },
-  });
+  // Seed Super Admin Accounts (both superadmin@example.com and superadmin@accessories.com)
+  const superAdminEmails = Array.from(new Set([
+    'superadmin@example.com',
+    'superadmin@accessories.com',
+    process.env.SUPER_ADMIN_EMAIL,
+    process.env.DEFAULT_ADMIN_EMAIL,
+  ].filter(Boolean)));
 
-  await prisma.user.upsert({
-    where: { email: process.env.DEFAULT_STAFF_EMAIL || 'admin@accessories.com' },
-    update: {},
-    create: {
-      name: 'Operations Admin',
-      email: process.env.DEFAULT_STAFF_EMAIL || 'admin@accessories.com',
-      mobile: '9876543211',
-      password: hashedPasswordAdmin,
-      roleId: adminRole.id,
-      isEmailVerified: true,
-      isMobileVerified: true,
-      status: 'ACTIVE',
-    },
-  });
+  let superAdminUser = null;
+  let idx = 0;
+  for (const email of superAdminEmails) {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPasswordSuper,
+        roleId: superAdminRole.id,
+        status: 'ACTIVE',
+      },
+      create: {
+        name: 'Super Administrator',
+        email,
+        mobile: `987654320${idx++}`,
+        password: hashedPasswordSuper,
+        roleId: superAdminRole.id,
+        isEmailVerified: true,
+        isMobileVerified: true,
+        status: 'ACTIVE',
+      },
+    });
+    if (!superAdminUser) superAdminUser = user;
+  }
 
-  const customerUser = await prisma.user.upsert({
-    where: { email: 'customer@example.com' },
-    update: {},
-    create: {
-      name: 'John Doe',
-      email: 'customer@example.com',
-      mobile: '9988776655',
-      password: hashedPasswordCustomer,
-      roleId: customerRole.id,
-      isEmailVerified: true,
-      isMobileVerified: true,
-      status: 'ACTIVE',
-    },
-  });
+  // Seed Admin Accounts (both admin@example.com and admin@accessories.com)
+  const adminEmails = Array.from(new Set([
+    'admin@example.com',
+    'admin@accessories.com',
+    process.env.ADMIN_EMAIL,
+    process.env.DEFAULT_STAFF_EMAIL,
+  ].filter(Boolean)));
+
+  let aIdx = 0;
+  for (const email of adminEmails) {
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPasswordAdmin,
+        roleId: adminRole.id,
+        status: 'ACTIVE',
+      },
+      create: {
+        name: 'Operations Administrator',
+        email,
+        mobile: `987654330${aIdx++}`,
+        password: hashedPasswordAdmin,
+        roleId: adminRole.id,
+        isEmailVerified: true,
+        isMobileVerified: true,
+        status: 'ACTIVE',
+      },
+    });
+  }
+
+  // Seed Manager Account
+  const managerEmails = Array.from(new Set([
+    'manager@example.com',
+    process.env.MANAGER_EMAIL,
+  ].filter(Boolean)));
+
+  let mIdx = 0;
+  for (const email of managerEmails) {
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPasswordManager,
+        roleId: managerRole.id,
+        status: 'ACTIVE',
+      },
+      create: {
+        name: 'Store Operations Manager',
+        email,
+        mobile: `987654340${mIdx++}`,
+        password: hashedPasswordManager,
+        roleId: managerRole.id,
+        isEmailVerified: true,
+        isMobileVerified: true,
+        status: 'ACTIVE',
+      },
+    });
+  }
+
+  // Seed Customer Account
+  const customerEmails = Array.from(new Set([
+    'customer@example.com',
+    process.env.CUSTOMER_EMAIL,
+  ].filter(Boolean)));
+
+  let customerUser = null;
+  let cIdx = 0;
+  for (const email of customerEmails) {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        password: hashedPasswordCustomer,
+        roleId: customerRole.id,
+        status: 'ACTIVE',
+      },
+      create: {
+        name: 'John Doe',
+        email,
+        mobile: `998877660${cIdx++}`,
+        password: hashedPasswordCustomer,
+        roleId: customerRole.id,
+        isEmailVerified: true,
+        isMobileVerified: true,
+        status: 'ACTIVE',
+      },
+    });
+    if (!customerUser) customerUser = user;
+  }
 
   // Seed Customer Address
   await prisma.address.createMany({
@@ -341,7 +436,7 @@ async function main() {
         { sku: 'MI-PB20K-BLK', color: 'Black', mrp: 2199, price: 1799, stock: 95, modelCompatibility: 'Universal' },
       ],
       images: [
-        'https://images.unsplash.com/photo-1609592424109-dd9892f1b177?auto=format&fit=crop&w=800&q=80',
+        '/images/power-bank-magsafe.png',
       ],
     },
     {
@@ -384,6 +479,7 @@ async function main() {
       });
     }
 
+    await prisma.productImage.deleteMany({ where: { productId: dbProduct.id } });
     let sortIndex = 0;
     for (const imgUrl of images) {
       await prisma.productImage.create({
