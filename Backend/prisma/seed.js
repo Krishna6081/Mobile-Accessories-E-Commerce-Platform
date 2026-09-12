@@ -315,23 +315,23 @@ async function main() {
 
   // 4. SEED CATEGORIES
   const categoriesData = [
-    { name: 'Phone Cases', slug: 'phone-cases', description: 'Protective & stylish back covers, rugged armor cases, and MagSafe silicone covers.' },
-    { name: 'Chargers', slug: 'chargers', description: 'Fast GaN wall adapters, wireless charging pads, car chargers, and multi-port docks.' },
-    { name: 'Cables', slug: 'cables', description: 'Braided Type-C to Lightning, USB-C 100W PD cables, and durable multi-connector cables.' },
-    { name: 'Audio Accessories', slug: 'audio-accessories', description: 'True wireless earbuds, neckbands, noise-canceling headphones, and audio adapters.' },
-    { name: 'Power Banks', slug: 'power-banks', description: 'High-capacity 20,000mAh power banks, MagSafe magnetic battery packs, and fast-charge pods.' },
-    { name: 'Mobile Mounts', slug: 'mobile-mounts', description: 'Car dashboard phone holders, AC vent magnetic clips, desktop tripod stands, and ring lights.' },
-    { name: 'Smart Watch Accessories', slug: 'smart-watch-accessories', description: 'Silicone watch straps, stainless steel bands, screen guards, and magnetic chargers.' },
-    { name: 'OTG & Drives', slug: 'otg-drives', description: 'Dual Type-C USB flash drives, high-speed card readers, and OTG dongles.' },
-    { name: 'Screen Protectors', slug: 'screen-protectors', description: '9H hardness tempered glass, privacy screens, UV curved glass, and camera lens protectors.' },
-    { name: 'Speakers', slug: 'speakers', description: 'Portable Bluetooth outdoor speakers, RGB mini desk speakers, and waterproof soundbars.' },
+    { name: 'Phone Cases', slug: 'phone-cases', description: 'Protective & stylish back covers, rugged armor cases, and MagSafe silicone covers.', image: '/images/cases-hero.png' },
+    { name: 'Chargers', slug: 'chargers', description: 'Fast GaN wall adapters, wireless charging pads, car chargers, and multi-port docks.', image: '/images/charger-hero.png' },
+    { name: 'Cables', slug: 'cables', description: 'Braided Type-C to Lightning, USB-C 100W PD cables, and durable multi-connector cables.', image: '/images/charger-hero.png' },
+    { name: 'Audio Accessories', slug: 'audio-accessories', description: 'True wireless earbuds, neckbands, noise-canceling headphones, and audio adapters.', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80' },
+    { name: 'Power Banks', slug: 'power-banks', description: 'High-capacity 20,000mAh power banks, MagSafe magnetic battery packs, and fast-charge pods.', image: '/images/power-bank-magsafe.png' },
+    { name: 'Mobile Mounts', slug: 'mobile-mounts', description: 'Car dashboard phone holders, AC vent magnetic clips, desktop tripod stands, and ring lights.', image: 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=800&q=80' },
+    { name: 'Smart Watch Accessories', slug: 'smart-watch-accessories', description: 'Silicone watch straps, stainless steel bands, screen guards, and magnetic chargers.', image: '/images/cases-hero.png' },
+    { name: 'OTG & Drives', slug: 'otg-drives', description: 'Dual Type-C USB flash drives, high-speed card readers, and OTG dongles.', image: '/images/charger-hero.png' },
+    { name: 'Screen Protectors', slug: 'screen-protectors', description: '9H hardness tempered glass, privacy screens, UV curved glass, and camera lens protectors.', image: '/images/cases-hero.png' },
+    { name: 'Speakers', slug: 'speakers', description: 'Portable Bluetooth outdoor speakers, RGB mini desk speakers, and waterproof soundbars.', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80' },
   ];
 
   const dbCategories = {};
   for (const cat of categoriesData) {
     const dbCat = await prisma.category.upsert({
       where: { slug: cat.slug },
-      update: {},
+      update: { image: cat.image, description: cat.description },
       create: cat,
     });
     dbCategories[cat.slug] = dbCat;
@@ -376,8 +376,7 @@ async function main() {
         { sku: 'SPG-IP15P-GUN', color: 'Gunmetal', mrp: 2499, price: 1799, stock: 20, modelCompatibility: 'iPhone 15 Pro' },
       ],
       images: [
-        'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=800&q=80',
+        '/images/cases-hero.png',
       ],
     },
     {
@@ -397,7 +396,7 @@ async function main() {
         { sku: 'ANK-65W-BLK', color: 'Black', mrp: 4999, price: 3499, stock: 35, modelCompatibility: 'Universal USB-C' },
       ],
       images: [
-        'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80',
+        '/images/charger-hero.png',
       ],
     },
     {
@@ -464,14 +463,19 @@ async function main() {
     const { variants, images, ...pDetails } = prodData;
     const dbProduct = await prisma.product.upsert({
       where: { slug: pDetails.slug },
-      update: {},
+      update: {
+        name: pDetails.name,
+        description: pDetails.description,
+        rating: pDetails.rating,
+        reviewCount: pDetails.reviewCount,
+      },
       create: pDetails,
     });
 
     for (const v of variants) {
       await prisma.productVariant.upsert({
         where: { sku: v.sku },
-        update: {},
+        update: { price: v.price, stock: v.stock },
         create: {
           ...v,
           productId: dbProduct.id,
@@ -493,25 +497,48 @@ async function main() {
     }
   }
 
-  // 7. SEED BANNERS
+  // 7. SEED BANNERS (Hero Carousel Banners in Database)
+  await prisma.banner.deleteMany({});
   const banners = [
     {
-      title: 'Next-Gen GaN Fast Chargers',
-      subtitle: 'Charge your devices up to 3x faster with ultra-compact GaN technology.',
-      image: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=1600&q=80',
+      title: '65W GaN Turbo Fast Charger',
+      subtitle: 'Charge your MacBook, iPhone 15 Pro & Galaxy S24 Ultra up to 3x faster with ultra-compact GaN Tech.',
+      image: '/images/charger-hero.png',
       ctaText: 'Shop Chargers',
-      ctaLink: '/category/chargers',
+      ctaLink: '/shop?category=chargers',
       position: 'HERO_CAROUSEL',
       sortOrder: 1,
+      isActive: true,
     },
     {
-      title: 'Premium Armor Protection',
-      subtitle: 'Drop-tested cases for iPhone 15 Pro & Samsung Galaxy S24 Series.',
-      image: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&w=1600&q=80',
+      title: 'Armor MagSafe Cases',
+      subtitle: '10ft drop tested protection with camera guard ring and strong N52 neodymium magnetic lock.',
+      image: '/images/cases-hero.png',
       ctaText: 'Explore Cases',
-      ctaLink: '/category/phone-cases',
+      ctaLink: '/shop?category=phone-cases',
       position: 'HERO_CAROUSEL',
       sortOrder: 2,
+      isActive: true,
+    },
+    {
+      title: 'Pro ANC TWS Earbuds',
+      subtitle: 'Immersive 3D Spatial Audio, crystal-clear 4-mic ENC calls, and 40-hour long playback.',
+      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=1200&q=80',
+      ctaText: 'Shop Audio',
+      ctaLink: '/shop?category=audio-accessories',
+      position: 'HERO_CAROUSEL',
+      sortOrder: 3,
+      isActive: true,
+    },
+    {
+      title: '10,000mAh MagSafe PowerBank',
+      subtitle: 'Snap-on wireless charging for on-the-go power with pass-through fast charging capability.',
+      image: '/images/power-bank-magsafe.png',
+      ctaText: 'Shop Power Banks',
+      ctaLink: '/shop?category=power-banks',
+      position: 'HERO_CAROUSEL',
+      sortOrder: 4,
+      isActive: true,
     },
   ];
 

@@ -79,19 +79,47 @@ const HERO_SLIDES = [
 ];
 
 export default function HomePage() {
+  const [heroSlides, setHeroSlides] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 42, seconds: 18 });
 
+  // Fetch Banners from Database
+  useEffect(() => {
+    api.get('/banners')
+      .then((res) => {
+        if (res.data && res.data.length > 0) {
+          const dbSlides = res.data.map((b, idx) => ({
+            id: b.id || idx + 1,
+            badge: b.title.includes('Fast') ? '⚡ NEXT-GEN POWER' : b.title.includes('Cases') ? '🛡️ MILITARY-GRADE DROP SHIELD' : b.title.includes('Earbuds') ? '🎧 38dB ACTIVE NOISE CANCELLING' : '🔋 MAGNETIC SLIM POWER',
+            title: b.title,
+            subtitle: b.subtitle || 'Premium mobile accessory engineered for maximum performance.',
+            image: b.image,
+            ctaText: b.ctaText || 'Shop Now',
+            ctaLink: b.ctaLink || '/shop',
+            gradient: idx % 2 === 0 ? 'from-slate-900 via-rose-950 to-slate-900' : 'from-slate-900 via-purple-950 to-slate-900',
+            accentColor: idx % 2 === 0 ? 'from-rose-500 to-amber-500' : 'from-purple-500 to-rose-500',
+            tags: ['Certified Quality', 'Official Warranty', 'Express Dispatch'],
+            rating: '4.9/5 (2,500+ reviews)',
+          }));
+          setHeroSlides(dbSlides);
+        } else {
+          setHeroSlides(HERO_SLIDES);
+        }
+      })
+      .catch(() => setHeroSlides(HERO_SLIDES));
+  }, []);
+
   // Carousel Auto-Play
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides]);
 
   // Flash Sale Timer
   useEffect(() => {
@@ -112,7 +140,8 @@ export default function HomePage() {
     api.get('/products?bestSeller=true&limit=8').then((res) => setBestSellers(res.data || [])).catch(() => {});
   }, []);
 
-  const slide = HERO_SLIDES[currentSlide];
+  const activeSlides = heroSlides.length > 0 ? heroSlides : HERO_SLIDES;
+  const slide = activeSlides[currentSlide] || activeSlides[0];
 
   return (
     <div className="space-y-12 pb-16">
@@ -185,13 +214,13 @@ export default function HomePage() {
 
           {/* Slide Navigation Controls */}
           <button
-            onClick={() => setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1))}
+            onClick={() => setCurrentSlide((prev) => (prev === 0 ? activeSlides.length - 1 : prev - 1))}
             className="absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/10 backdrop-blur-md transition-all z-20 hidden md:block"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)}
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % activeSlides.length)}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/70 text-white border border-white/10 backdrop-blur-md transition-all z-20 hidden md:block"
           >
             <ChevronRight className="w-5 h-5" />
@@ -199,7 +228,7 @@ export default function HomePage() {
 
           {/* Slide Indicators */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-            {HERO_SLIDES.map((_, idx) => (
+            {activeSlides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
